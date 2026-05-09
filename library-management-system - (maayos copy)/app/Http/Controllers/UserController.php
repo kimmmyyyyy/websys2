@@ -35,7 +35,7 @@ class UserController extends Controller
 
         $overdue = BookTransaction::where('borrower_id', $borrower->id)
             ->where('status', 'borrowed')
-            ->where('due_date', '<', Carbon::now()->toDateString())
+            ->where('due_date', '<', Carbon::now('Asia/Manila')->toDateString())
             ->count();
 
         return view('user.dashboard', compact('borrowedBooks', 'borrowingHistory', 'borrower', 'overdue'));
@@ -45,7 +45,7 @@ class UserController extends Controller
     public function search(Request $request)
     {
         $query = $request->input('q');
-        
+
         if ($query) {
             $books = Book::where('title', 'like', "%{$query}%")
                 ->orWhere('author', 'like', "%{$query}%")
@@ -113,12 +113,15 @@ class UserController extends Controller
             return back()->with('error', 'You already have this book borrowed.');
         }
 
-        $dueDate = Carbon::now()->addDays(14); // 14-day borrow period
+        $dueDate = Carbon::now('Asia/Manila')->addDays(14); // 14-day borrow period
+
+        $nowManila = Carbon::now('Asia/Manila');
 
         $transaction = BookTransaction::create([
             'borrower_id' => $borrower->id,
             'book_id' => $book->id,
-            'borrow_date' => Carbon::now()->toDateString(),
+            'borrow_date' => $nowManila->toDateString(),
+            'borrow_time' => $nowManila->toTimeString(),
             'due_date' => $dueDate->toDateString(),
             'status' => 'borrowed',
         ]);
@@ -150,11 +153,11 @@ class UserController extends Controller
             return back()->with('error', 'You cannot return this book.');
         }
 
-        $returnDate = Carbon::now()->toDateString();
+        $returnDate = Carbon::now('Asia/Manila')->toDateString();
 
         // Calculate fine if overdue
-        $dueDate = Carbon::parse($transaction->due_date);
-        $currentDate = Carbon::now();
+        $dueDate = Carbon::parse($transaction->due_date)->setTimezone('Asia/Manila');
+        $currentDate = Carbon::now('Asia/Manila');
         $fineAmount = 0;
 
         if ($currentDate->isAfter($dueDate)) {

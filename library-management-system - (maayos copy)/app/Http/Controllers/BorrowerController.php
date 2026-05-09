@@ -52,7 +52,7 @@ class BorrowerController extends Controller
             'membership_date' => $validated['membership_date'],
 
             // ✅ system-generated membership ID
-            'membership_id' => 'MEM-' . strtoupper(Str::random(8)),
+                'membership_id' => 'MEM-' . strtoupper(Str::random(8)),
 
             'status' => 'active',
         ]);

@@ -16,6 +16,7 @@ class BookTransaction extends Model
         'borrower_id',
         'book_id',
         'borrow_date',
+        'borrow_time',
         'due_date',
         'return_date',
         'status',
@@ -42,25 +43,25 @@ class BookTransaction extends Model
 
     public function isOverdue()
     {
-        return $this->status === 'borrowed' && Carbon::now()->isAfter($this->due_date);
+        return $this->status === 'borrowed' && Carbon::now('Asia/Manila')->isAfter($this->due_date);
     }
 
-  public function calculateFine($dailyRate = 10)
-{
-    $dueDate = Carbon::parse($this->due_date);
+    public function calculateFine($dailyRate = 10)
+    {
+        $dueDate = Carbon::parse($this->due_date)->setTimezone('Asia/Manila');
 
-    // If returned, use return_date; otherwise use now()
-    $endDate = $this->return_date
-        ? Carbon::parse($this->return_date)
-        : Carbon::now();
+        // If returned, use return_date; otherwise use now()
+        $endDate = $this->return_date
+            ? Carbon::parse($this->return_date)->setTimezone('Asia/Manila')
+            : Carbon::now('Asia/Manila');
 
-    // If not overdue → no fine
-    if ($endDate->lte($dueDate)) {
-        return 0;
+        // If not overdue → no fine
+        if ($endDate->lte($dueDate)) {
+            return 0;
+        }
+
+        $daysOverdue = $dueDate->diffInDays($endDate);
+
+        return $daysOverdue * $dailyRate;
     }
-
-    $daysOverdue = $dueDate->diffInDays($endDate);
-
-    return $daysOverdue * $dailyRate;
-}
 }

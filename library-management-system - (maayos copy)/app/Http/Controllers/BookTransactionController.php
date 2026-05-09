@@ -35,14 +35,15 @@ class BookTransactionController extends Controller
             return back()->with('error', 'Book is not available.');
         }
 
-        $transaction = BookTransaction::create([
-            'borrower_id' => $validated['borrower_id'],
-            'book_id' => $validated['book_id'],
-            'borrow_date' => Carbon::now(),
-            'due_date' => Carbon::parse($validated['due_date'])->setTime(23, 59, 0),
-            'status' => 'borrowed',
-        ]);
-
+            $transaction = BookTransaction::create([
+                'borrower_id' => $validated['borrower_id'],
+                'book_id' => $validated['book_id'],
+                'borrow_date' => Carbon::now('Asia/Manila'),
+                'borrow_time' => Carbon::now('Asia/Manila')->toTimeString(),
+                'due_date' => Carbon::parse($validated['due_date'])->setTime(23, 59, 0),
+                'status' => 'borrowed',
+            ]);
+    
         $book->decrement('available_copies');
 
         ActivityLog::create([
@@ -99,9 +100,9 @@ class BookTransactionController extends Controller
     public function listOverdue(Request $request)
     {
         $overdueBooks = BookTransaction::with([
-                'borrower.user',
-                'book'
-            ])
+            'borrower.user',
+            'book'
+        ])
             ->whereNull('return_date')
             ->orderBy('due_date', 'asc')
             ->paginate(15);

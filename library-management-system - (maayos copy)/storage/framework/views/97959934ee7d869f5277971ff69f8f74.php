@@ -1,8 +1,8 @@
-@extends('layouts.app')
 
-@section('title', 'Admin Dashboard')
 
-@section('content')
+<?php $__env->startSection('title', 'Admin Dashboard'); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="space-y-8">
 
     <!-- HEADER -->
@@ -17,16 +17,17 @@
                 Viewing data for:
 
                 <span class="font-semibold text-cyan-600">
-                    {{ request('date') 
+                    <?php echo e(request('date') 
                         ? \Carbon\Carbon::parse(request('date'))->format('F d, Y') 
-                        : now()->format('F d, Y') }}
+                        : now()->format('F d, Y')); ?>
+
                 </span>
 
-                @if(request('date') && \Carbon\Carbon::parse(request('date'))->isFuture())
+                <?php if(request('date') && \Carbon\Carbon::parse(request('date'))->isFuture()): ?>
                     <span class="ml-2 text-sm text-red-500">
                         (No records available for future dates)
                     </span>
-                @endif
+                <?php endif; ?>
             </p>
         </div>
 
@@ -38,7 +39,7 @@
     <input
         type="date"
         name="date"
-        value="{{ request('date', now()->format('Y-m-d')) }}"
+        value="<?php echo e(request('date', now()->format('Y-m-d'))); ?>"
         class="rounded-xl border-slate-200 bg-slate-50 text-sm shadow-sm focus:border-cyan-500 focus:ring-cyan-500"
     >
 
@@ -49,20 +50,20 @@
     Filter
 </button>
 
-<a href="{{ route('admin.dashboard', ['all' => 1]) }}"
+<a href="<?php echo e(route('admin.dashboard', ['all' => 1])); ?>"
    class="rounded-xl bg-cyan-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-cyan-700">
     View All
 </a>
     </button>
 
-    @if(request('date'))
+    <?php if(request('date')): ?>
 
-        <a href="{{ route('admin.dashboard') }}"
+        <a href="<?php echo e(route('admin.dashboard')); ?>"
            class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100">
             Reset
         </a>
 
-    @endif
+    <?php endif; ?>
 
 </form>
     </div>
@@ -96,7 +97,8 @@
                     <p class="text-sm text-slate-500">Total Books</p>
 
                     <p class="mt-2 text-4xl font-bold text-slate-900">
-                        {{ $stats['total_books'] }}
+                        <?php echo e($stats['total_books']); ?>
+
                     </p>
                 </div>
 
@@ -113,7 +115,8 @@
                     <p class="text-sm text-slate-500">Total Borrowers</p>
 
                     <p class="mt-2 text-4xl font-bold text-slate-900">
-                        {{ $stats['total_borrowers'] }}
+                        <?php echo e($stats['total_borrowers']); ?>
+
                     </p>
                 </div>
 
@@ -130,7 +133,8 @@
                     <p class="text-sm text-slate-500">Borrowed Books</p>
 
                     <p class="mt-2 text-4xl font-bold text-slate-900">
-                        {{ $stats['total_borrowed_books'] }}
+                        <?php echo e($stats['total_borrowed_books']); ?>
+
                     </p>
                 </div>
 
@@ -147,7 +151,8 @@
                     <p class="text-sm text-red-500">Overdue Books</p>
 
                     <p class="mt-2 text-4xl font-bold text-red-600">
-                        {{ $stats['overdue_books'] }}
+                        <?php echo e($stats['overdue_books']); ?>
+
                     </p>
                 </div>
 
@@ -234,86 +239,94 @@
 
                 <tbody id="transactionTable" class="divide-y divide-slate-100">
 
-                    @forelse ($recentTransactions as $transaction)
+                    <?php $__empty_1 = true; $__currentLoopData = $recentTransactions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $transaction): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
 
                         <tr class="transaction-row transition hover:bg-slate-50">
 
                             <!-- BORROWER -->
                             <td class="borrower-name px-8 py-5 font-medium text-slate-900">
-                                {{ $transaction->borrower->user->name }}
+                                <?php echo e($transaction->borrower->user->name); ?>
+
                             </td>
 
                             <!-- BOOK -->
                             <td class="book-title px-8 py-5 text-slate-600">
-                                {{ $transaction->book->title }}
+                                <?php echo e($transaction->book->title); ?>
+
                             </td>
 
                            <!-- BORROW DATE -->
-@php
+<?php
     $borrowDate = \Carbon\Carbon::parse($transaction->borrow_date, 'Asia/Manila');
-@endphp
+?>
 
 <td class="px-8 py-5 text-slate-600">
     <div class="font-medium text-slate-900">
-        {{ $borrowDate->format('M d, Y') }}
+        <?php echo e($borrowDate->format('M d, Y')); ?>
+
     </div>
 
 <div class="text-xs text-slate-400">
-    {{ \Carbon\Carbon::parse($transaction->borrow_time)->format('h:i A') }}
+    <?php echo e(\Carbon\Carbon::parse($transaction->borrow_time)->format('h:i A')); ?>
+
 </div>
 </td>
 
 <!-- DUE DATE -->
-<!--@php
+<!--<?php
     $dueDate = \Carbon\Carbon::parse($transaction->due_date);
-@endphp
+?>
 
 <td class="px-8 py-5 text-slate-600">
     <div class="font-medium text-slate-900">
-        {{ $dueDate->format('M d, Y') }}
+        <?php echo e($dueDate->format('M d, Y')); ?>
+
     </div>
     <div class="text-xs text-slate-400">
-        {{ $dueDate->format('h:i A') }}
+        <?php echo e($dueDate->format('h:i A')); ?>
+
     </div>
 </td> -->
 
 <td class="px-8 py-5 text-slate-600">
     <div class="font-medium text-slate-900">
-        {{ $transaction->due_date?->format('M d, Y') }}
+        <?php echo e($transaction->due_date?->format('M d, Y')); ?>
+
     </div>
     <div class="text-xs text-slate-400">
-        {{ $transaction->due_date?->format('h:i A') }}
+        <?php echo e($transaction->due_date?->format('h:i A')); ?>
+
     </div>
 </td>
 
                             <!-- STATUS -->
                             <td class="px-8 py-5">
 
-                                @if($transaction->status === 'borrowed')
+                                <?php if($transaction->status === 'borrowed'): ?>
 
                                     <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
                                         Borrowed
                                     </span>
 
-                                @elseif($transaction->status === 'returned')
+                                <?php elseif($transaction->status === 'returned'): ?>
 
                                     <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
                                         Returned
                                     </span>
 
-                                @else
+                                <?php else: ?>
 
                                     <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
                                         Overdue
                                     </span>
 
-                                @endif
+                                <?php endif; ?>
 
                             </td>
 
                         </tr>
 
-                    @empty
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
 
                         <tr>
                             <td colspan="5" class="px-8 py-10 text-center text-slate-500">
@@ -321,7 +334,7 @@
                             </td>
                         </tr>
 
-                    @endforelse
+                    <?php endif; ?>
 
                 </tbody>
 
@@ -334,32 +347,32 @@
 
         <div class="flex flex-wrap justify-center gap-6 text-sm font-medium text-slate-500">
 
-            <a href="{{ route('admin.dashboard') }}"
+            <a href="<?php echo e(route('admin.dashboard')); ?>"
                class="transition hover:text-cyan-600">
                 Dashboard
             </a>
 
-            <a href="{{ route('admin.books.index') }}"
+            <a href="<?php echo e(route('admin.books.index')); ?>"
                class="transition hover:text-cyan-600">
                 Books
             </a>
 
-            <a href="{{ route('admin.categories.index') }}"
+            <a href="<?php echo e(route('admin.categories.index')); ?>"
                class="transition hover:text-cyan-600">
                 Categories
             </a>
 
-            <a href="{{ route('admin.borrowers.index') }}"
+            <a href="<?php echo e(route('admin.borrowers.index')); ?>"
                class="transition hover:text-cyan-600">
                 Borrowers
             </a>
 
-            <a href="{{ route('admin.overdue-books') }}"
+            <a href="<?php echo e(route('admin.overdue-books')); ?>"
                class="transition hover:text-cyan-600">
                 Overdue
             </a>
 
-            <a href="{{ route('admin.reports.borrowing') }}"
+            <a href="<?php echo e(route('admin.reports.borrowing')); ?>"
                class="transition hover:text-cyan-600">
                 Reports
             </a>
@@ -367,7 +380,7 @@
         </div>
 
         <div class="mt-6 text-center text-sm text-slate-400">
-            © {{ date('Y') }} Camela. All rights reserved.
+            © <?php echo e(date('Y')); ?> Camela. All rights reserved.
         </div>
 
     </footer>
@@ -378,7 +391,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    const chartData = @json($chartData);
+    const chartData = <?php echo json_encode($chartData, 15, 512) ?>;
 
     new Chart(document.getElementById('activityChart'), {
         type: 'line',
@@ -422,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const input = document.getElementById('dashboardOverdueSearch');
     const container = document.getElementById('dashboardOverdueResults');
-    const baseUrl = "{{ route('admin.overdue-books') }}";
+    const baseUrl = "<?php echo e(route('admin.overdue-books')); ?>";
 
     const debounce = (fn, wait = 300) => {
         let t;
@@ -528,4 +541,5 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\websys2\library-management-system - (maayos copy)\resources\views/admin/dashboard.blade.php ENDPATH**/ ?>
