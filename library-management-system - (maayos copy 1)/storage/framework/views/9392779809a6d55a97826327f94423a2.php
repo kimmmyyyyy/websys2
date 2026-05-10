@@ -1,0 +1,155 @@
+<?php $__env->startSection('title', 'My Library Dashboard'); ?>
+
+<?php $__env->startSection('content'); ?>
+<div class="space-y-8">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">My Library Dashboard</h1>
+        <p class="mt-2 text-gray-600">Welcome, <?php echo e(auth()->user()->name); ?></p>
+    </div>
+
+    <?php if(!$borrower): ?>
+        <div class="rounded-lg bg-blue-50 p-6 border border-blue-200">
+            <p class="text-sm text-blue-800">You haven't been registered as a borrower yet. Please contact the library administrator to get registered.</p>
+        </div>
+    <?php else: ?>
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="rounded-lg bg-blue-50 p-4 border border-blue-200">
+                <p class="text-sm text-blue-600 font-medium">Currently Borrowed</p>
+                <p class="mt-1 text-2xl font-bold text-blue-900"><?php echo e($borrowedBooks->count()); ?></p>
+            </div>
+            <div class="rounded-lg bg-red-50 p-4 border border-red-200">
+                <p class="text-sm text-red-600 font-medium">Overdue</p>
+                <p class="mt-1 text-2xl font-bold text-red-900"><?php echo e($overdue); ?></p>
+            </div>
+            <div class="rounded-lg bg-green-50 p-4 border border-green-200">
+                <p class="text-sm text-green-600 font-medium">Member Since</p>
+                <p class="mt-1 text-lg font-bold text-green-900"><?php echo e($borrower->created_at->format('M Y')); ?></p>
+            </div>
+            <div class="rounded-lg bg-purple-50 p-4 border border-purple-200">
+                <p class="text-sm text-purple-600 font-medium">ID</p>
+                <p class="mt-1 text-lg font-bold text-purple-900"><?php echo e($borrower->membership_id); ?></p>
+            </div>
+        </div>
+
+        <!-- Current Borrowed Books -->
+        <div class="rounded-lg bg-white p-6 shadow">
+            <h2 class="mb-4 text-lg font-semibold text-gray-900">Currently Borrowed Books</h2>
+            <?php if($borrowedBooks->count() > 0): ?>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="px-4 py-2 text-left font-medium text-gray-700">Book Title</th>
+                                <th class="px-4 py-2 text-left font-medium text-gray-700">Borrow Date</th>
+                                <th class="px-4 py-2 text-left font-medium text-gray-700">Due Date</th>
+                                <th class="px-4 py-2 text-left font-medium text-gray-700">Days Left</th>
+                                <th class="px-4 py-2 text-left font-medium text-gray-700">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php $__currentLoopData = $borrowedBooks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $transaction): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                    <td class="px-4 py-3"><?php echo e($transaction->book->title); ?></td>
+                                    <td class="px-4 py-3"><?php echo e(\Carbon\Carbon::parse($transaction->borrow_date)->format('M d, Y')); ?></td>
+                                    <td class="px-4 py-3"><?php echo e(\Carbon\Carbon::parse($transaction->due_date)->format('M d, Y')); ?></td>
+                                    <td class="px-4 py-3">
+                                        <?php
+                                            $daysLeft = \Carbon\Carbon::parse($transaction->due_date)->diffInDays(\Carbon\Carbon::now());
+                                        ?>
+                                        <span class="font-semibold <?php echo e($daysLeft < 0 ? 'text-red-600' : 'text-green-600'); ?>">
+                                            <?php if($daysLeft < 0): ?>
+                                                <?php echo e(abs($daysLeft)); ?> days overdue
+                                            <?php else: ?>
+                                                <?php echo e($daysLeft); ?> days left
+                                            <?php endif; ?>
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <form method="POST" action="<?php echo e(route('book.return', $transaction->id)); ?>" class="inline">
+                                            <?php echo csrf_field(); ?>
+                                            <button type="submit" class="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs font-medium">
+                                                Return
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
+                <p class="text-center text-gray-500 py-4">No books currently borrowed</p>
+            <?php endif; ?>
+        </div>
+
+        <!-- Borrowing History -->
+        <div class="rounded-lg bg-white p-6 shadow">
+            <h2 class="mb-4 text-lg font-semibold text-gray-900">Borrowing History</h2>
+            <?php if($borrowingHistory->count() > 0): ?>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="px-4 py-2 text-left font-medium text-gray-700">Book Title</th>
+                                <th class="px-4 py-2 text-left font-medium text-gray-700">Borrow Date</th>
+                                <th class="px-4 py-2 text-left font-medium text-gray-700">Return Date</th>
+                                <th class="px-4 py-2 text-left font-medium text-gray-700">Fine</th>
+                                <th class="px-4 py-2 text-left font-medium text-gray-700">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php $__currentLoopData = $borrowingHistory; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $transaction): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <tr class="border-b border-gray-100">
+                                    <td class="px-4 py-3"><?php echo e($transaction->book->title); ?></td>
+                                    <td class="px-4 py-3"><?php echo e(\Carbon\Carbon::parse($transaction->borrow_date)->format('M d, Y')); ?></td>
+                                    <td class="px-4 py-3"><?php echo e($transaction->return_date ? \Carbon\Carbon::parse($transaction->return_date)->format('M d, Y') : '—'); ?></td>
+                                    <td class="px-4 py-3">
+                                        <?php if($transaction->fine_amount > 0): ?>
+                                            <span class="font-semibold text-red-600">₱<?php echo e(number_format($transaction->fine_amount, 2)); ?></span>
+                                        <?php else: ?>
+                                            <span class="text-gray-500">—</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="inline-block rounded-full px-3 py-1 text-xs font-semibold
+                                            <?php if($transaction->status === 'borrowed'): ?>
+                                                bg-blue-100 text-blue-800
+                                            <?php elseif($transaction->status === 'returned'): ?>
+                                                bg-green-100 text-green-800
+                                            <?php else: ?>
+                                                bg-red-100 text-red-800
+                                            <?php endif; ?>
+                                        ">
+                                            <?php echo e(ucfirst($transaction->status)); ?>
+
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4">
+                    <?php echo e($borrowingHistory->links()); ?>
+
+                </div>
+            <?php else: ?>
+                <p class="text-center text-gray-500 py-4">No borrowing history</p>
+            <?php endif; ?>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a href="<?php echo e(route('books.search')); ?>" class="rounded-lg bg-blue-600 hover:bg-blue-700 text-white p-4 text-center font-semibold transition">
+                Search Books
+            </a>
+            <a href="<?php echo e(route('user.profile')); ?>" class="rounded-lg bg-purple-600 hover:bg-purple-700 text-white p-4 text-center font-semibold transition">
+                View Profile
+            </a>
+        </div>
+    <?php endif; ?>
+</div>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp1\htdocs\library-management-system - Copy\resources\views/user/dashboard.blade.php ENDPATH**/ ?>

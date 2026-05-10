@@ -1,0 +1,554 @@
+@extends('layouts.app')
+
+@section('title', 'Admin Dashboard')
+
+@section('content')
+<div class="space-y-8">
+
+    <!-- HEADER -->
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+
+        <div>
+            <h1 class="text-4xl font-bold tracking-tight text-slate-900">
+                Dashboard
+            </h1>
+
+            <p class="mt-2 text-slate-500">
+                Viewing data for:
+
+                <span class="font-semibold text-cyan-600">
+                    @if(request('date'))
+                        {{ \Carbon\Carbon::parse(request('date'))->format('F d, Y') }}
+                    @else
+                        All dates
+                    @endif
+                </span>
+
+                @if(request('date') && \Carbon\Carbon::parse(request('date'))->isFuture())
+                    <span class="ml-2 text-sm text-red-500">
+                        (No records available for future dates)
+                    </span>
+                @endif
+            </p>
+        </div>
+
+        <!-- DATE FILTER -->
+      <!-- DATE FILTER -->
+<form method="GET"
+      class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+
+    <input
+        type="date"
+        name="date"
+        value="{{ request('date') }}"
+        class="rounded-xl border-slate-200 bg-slate-50 text-sm shadow-sm focus:border-cyan-500 focus:ring-cyan-500"
+    >
+
+   <button
+    type="submit"
+    class="rounded-xl bg-slate-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+>
+    Filter
+</button>
+
+<a href="{{ route('admin.dashboard', ['all' => 1]) }}"
+   class="rounded-xl bg-cyan-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-cyan-700">
+    View All
+</a>
+    </button>
+
+    @if(request('date'))
+
+        <a href="{{ route('admin.dashboard') }}"
+           class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100">
+            Reset
+        </a>
+
+    @endif
+
+</form>
+    </div>
+
+    <!-- SEARCH -->
+    <!-- <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+
+        <div class="w-full">
+            <label class="mb-3 block text-sm font-medium text-slate-700">
+                Search Overdue Borrowers or Books
+            </label>
+
+            <input
+                id="dashboardOverdueSearch"
+                type="text"
+                placeholder="Search overdue borrower or book..."
+                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm shadow-sm transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100"
+            />
+
+            <div id="dashboardOverdueResults" class="mt-4"></div>
+        </div>
+    </div> -->
+
+    <!-- STATS -->
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+
+        <!-- TOTAL BOOKS -->
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-500">Total Books</p>
+
+                    <p class="mt-2 text-4xl font-bold text-slate-900">
+                        {{ $stats['total_books'] }}
+                    </p>
+                </div>
+
+                <div class="rounded-2xl bg-cyan-50 p-4 text-3xl">
+                    📚
+                </div>
+            </div>
+        </div>
+
+        <!-- BORROWERS -->
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-500">Total Borrowers</p>
+
+                    <p class="mt-2 text-4xl font-bold text-slate-900">
+                        {{ $stats['total_borrowers'] }}
+                    </p>
+                </div>
+
+                <div class="rounded-2xl bg-violet-50 p-4 text-3xl">
+                    👥
+                </div>
+            </div>
+        </div>
+
+        <!-- BORROWED -->
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-500">Borrowed Books</p>
+
+                    <p class="mt-2 text-4xl font-bold text-slate-900">
+                        {{ $stats['total_borrowed_books'] }}
+                    </p>
+                </div>
+
+                <div class="rounded-2xl bg-emerald-50 p-4 text-3xl">
+                    📖
+                </div>
+            </div>
+        </div>
+
+        <!-- OVERDUE -->
+        <div class="rounded-3xl border border-red-100 bg-gradient-to-br from-red-50 to-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-red-500">Overdue Books</p>
+
+                    <p class="mt-2 text-4xl font-bold text-red-600">
+                        {{ $stats['overdue_books'] }}
+                    </p>
+                </div>
+
+                <div class="rounded-2xl bg-red-100 p-4 text-3xl">
+                    ⚠️
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- GRAPH -->
+    <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold text-slate-900">
+                Activity Overview
+            </h2>
+        </div>
+
+        <canvas id="activityChart" height="100"></canvas>
+    </div>
+
+    <!-- RECENT TRANSACTIONS -->
+    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+
+        <!-- HEADER -->
+        <div class="flex flex-col gap-4 border-b border-slate-100 px-8 py-6 lg:flex-row lg:items-center lg:justify-between">
+
+            <div>
+                <h2 class="text-xl font-semibold text-slate-900">
+                    Book Transactions
+                </h2>
+
+            </div>
+
+            <!-- SEARCH -->
+            <div class="w-full lg:w-80">
+                <input
+                    id="transactionSearch"
+                    type="text"
+                    placeholder="Search borrower or book..."
+                    class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm shadow-sm transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100"
+                >
+            </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+
+                <thead class="bg-slate-50">
+                    <tr>
+
+                        <th class="px-8 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            Borrower
+                        </th>
+
+                        <th class="px-8 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            Book
+                        </th>
+
+                        <th class="px-8 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            Borrow Date
+                        </th>
+
+                        <th class="px-8 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            Due Date
+                        </th>
+
+                        <th class="px-8 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            Status
+                        </th>
+
+                    </tr>
+                </thead>
+
+                <tbody id="transactionTable" class="divide-y divide-slate-100">
+
+                    @forelse ($recentTransactions as $transaction)
+
+                        <tr class="transaction-row transition hover:bg-slate-50">
+
+                            <!-- BORROWER -->
+                            <td class="borrower-name px-8 py-5 font-medium text-slate-900">
+                                {{ $transaction->borrower->user->name }}
+                            </td>
+
+                            <!-- BOOK -->
+                            <td class="book-title px-8 py-5 text-slate-600">
+                                {{ $transaction->book->title }}
+                            </td>
+
+                           <!-- BORROW DATE -->
+@php
+    $borrowDate = \Carbon\Carbon::parse($transaction->borrow_date, 'Asia/Manila');
+@endphp
+
+<td class="px-8 py-5 text-slate-600">
+    <div class="font-medium text-slate-900">
+        {{ $borrowDate->format('M d, Y') }}
+    </div>
+
+<div class="text-xs text-slate-400">
+    @if(!empty($transaction->borrow_time))
+        {{ \Carbon\Carbon::parse($transaction->borrow_time, 'Asia/Manila')->format('h:i A') }}
+    @endif
+</div>
+</td>
+
+<!-- DUE DATE -->
+<!--@php
+    $dueDate = \Carbon\Carbon::parse($transaction->due_date);
+@endphp
+
+<td class="px-8 py-5 text-slate-600">
+    <div class="font-medium text-slate-900">
+        {{ $dueDate->format('M d, Y') }}
+    </div>
+    <div class="text-xs text-slate-400">
+        {{ $dueDate->format('h:i A') }}
+    </div>
+</td> -->
+
+<td class="px-8 py-5 text-slate-600">
+    <div class="font-medium text-slate-900">
+        {{ $transaction->due_date ? \Carbon\Carbon::parse($transaction->due_date, 'Asia/Manila')->format('M d, Y') : '' }}
+    </div>
+    <div class="text-xs text-slate-400">
+        {{ $transaction->due_date ? \Carbon\Carbon::parse($transaction->due_date, 'Asia/Manila')->format('h:i A') : '' }}
+    </div>
+</td>
+
+                            <!-- STATUS
+                            <td class="px-8 py-5">
+
+                                @if($transaction->status === 'borrowed')
+
+                                    <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                                        Borrowed
+                                    </span>
+
+                                @elseif($transaction->status === 'returned')
+
+                                    <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                                        Returned
+                                    </span>
+
+                                @else
+
+                                    <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+                                        Overdue
+                                    </span>
+
+                                @endif
+
+                            </td>
+
+                        </tr> -->
+
+                        <!-- STATUS -->
+<!-- STATUS -->
+<td class="px-8 py-5">
+
+    @if($transaction->status === 'overdue')
+
+        <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+            Overdue
+        </span>
+
+    @elseif($transaction->status === 'borrowed')
+
+        <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+            Borrowed
+        </span>
+
+    @elseif($transaction->status === 'returned')
+
+        <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+            Returned
+        </span>
+
+    @endif
+
+</td>
+
+                    @empty
+
+                        <tr>
+                            <td colspan="5" class="px-8 py-10 text-center text-slate-500">
+                                No transactions found
+                            </td>
+                        </tr>
+
+                    @endforelse
+
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+
+    <!-- FOOTER
+    <footer class="rounded-3xl border border-slate-200 bg-white px-6 py-8 shadow-sm">
+
+        <div class="flex flex-wrap justify-center gap-6 text-sm font-medium text-slate-500">
+
+            <a href="{{ route('admin.dashboard') }}"
+               class="transition hover:text-cyan-600">
+                Dashboard
+            </a>
+
+            <a href="{{ route('admin.books.index') }}"
+               class="transition hover:text-cyan-600">
+                Books
+            </a>
+
+            <a href="{{ route('admin.categories.index') }}"
+               class="transition hover:text-cyan-600">
+                Categories
+            </a>
+
+            <a href="{{ route('admin.borrowers.index') }}"
+               class="transition hover:text-cyan-600">
+                Borrowers
+            </a>
+
+            <a href="{{ route('admin.overdue-books') }}"
+               class="transition hover:text-cyan-600">
+                Overdue
+            </a>
+
+            <a href="{{ route('admin.reports.borrowing') }}"
+               class="transition hover:text-cyan-600">
+                Reports
+            </a>
+
+        </div>
+
+        <div class="mt-6 text-center text-sm text-slate-400">
+            © {{ date('Y') }} Camela. All rights reserved.
+        </div>
+
+    </footer> -->
+
+</div>
+
+<!-- CHART JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const chartData = @json($chartData);
+
+    new Chart(document.getElementById('activityChart'), {
+        type: 'line',
+        data: {
+            labels: chartData.labels,
+            datasets: [
+                {
+                    label: 'Borrowed',
+                    data: chartData.borrowed,
+                    borderWidth: 2,
+                    tension: 0.3
+                },
+                {
+                    label: 'Returned',
+                    data: chartData.returned,
+                    borderWidth: 2,
+                    tension: 0.3
+                },
+                {
+                    label: 'Overdue',
+                    data: chartData.overdue,
+                    borderWidth: 2,
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            }
+        }
+    });
+</script>
+
+<!-- LIVE SEARCH SCRIPT -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const input = document.getElementById('dashboardOverdueSearch');
+    const container = document.getElementById('dashboardOverdueResults');
+    const baseUrl = "{{ route('admin.overdue-books') }}";
+
+    const debounce = (fn, wait = 300) => {
+        let t;
+
+        return function () {
+            const args = arguments;
+
+            clearTimeout(t);
+
+            t = setTimeout(() => fn.apply(this, args), wait);
+        };
+    };
+
+    async function fetchResults(q = '', page = 1) {
+
+        const url = new URL(baseUrl, window.location.origin);
+
+        if (q) url.searchParams.set('q', q);
+        if (page) url.searchParams.set('page', page);
+
+        const res = await fetch(url.toString(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        if (!res.ok) {
+            container.innerHTML = '';
+            return;
+        }
+
+        const data = await res.json();
+
+        container.innerHTML = data.table ?? '';
+
+        attachPaginationLinks();
+    }
+
+    const debounced = debounce(() => {
+        fetchResults(input.value);
+    }, 300);
+
+    input.addEventListener('input', debounced);
+
+    function attachPaginationLinks() {
+
+        container.querySelectorAll('a').forEach(a => {
+
+            if (a.href.includes('page=')) {
+
+                a.addEventListener('click', function (e) {
+
+                    e.preventDefault();
+
+                    const page = new URL(a.href).searchParams.get('page');
+
+                    fetchResults(input.value, page);
+                });
+            }
+
+        });
+
+    }
+
+});
+</script>
+
+<!-- TRANSACTION SEARCH -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const searchInput = document.getElementById('transactionSearch');
+
+    const rows = document.querySelectorAll('.transaction-row');
+
+    searchInput.addEventListener('input', function () {
+
+        const value = this.value.toLowerCase();
+
+        rows.forEach(row => {
+
+            const borrower = row.querySelector('.borrower-name')
+                .textContent
+                .toLowerCase();
+
+            const book = row.querySelector('.book-title')
+                .textContent
+                .toLowerCase();
+
+            if (
+                borrower.includes(value) ||
+                book.includes(value)
+            ) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+
+        });
+
+    });
+
+});
+</script>
+
+
+
+@endsection
