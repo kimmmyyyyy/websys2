@@ -1,8 +1,8 @@
-@extends('layouts.app')
 
-@section('title', 'Borrowing Report')
 
-@section('content')
+<?php $__env->startSection('title', 'Borrowing Report'); ?>
+
+<?php $__env->startSection('content'); ?>
 
 <div class="space-y-8">
 
@@ -27,7 +27,7 @@
     <input
         type="date"
         name="date"
-        value="{{ request('date', now()->format('Y-m-d')) }}"
+        value="<?php echo e(request('date', now()->format('Y-m-d'))); ?>"
         class="rounded-xl border-slate-200 bg-slate-50 text-sm shadow-sm focus:border-cyan-500 focus:ring-cyan-500"
     >
 
@@ -37,11 +37,11 @@
     >
         Filter
     </button>
-    <a href="{{ route('admin.reports.borrowing', ['all' => 1]) }}"
+    <a href="<?php echo e(route('admin.reports.borrowing', ['all' => 1])); ?>"
    class="rounded-xl bg-cyan-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-cyan-700">
     View All
 </a>
-<a href="{{ route('admin.reports.borrowing.export', request()->query()) }}"
+<a href="<?php echo e(route('admin.reports.borrowing.export', request()->query())); ?>"
    class="rounded-xl bg-red-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-red-700">
     Export PDF
 </a>
@@ -63,11 +63,10 @@
                 Top borrowed books for
               Top borrowed books for
 <span class="font-semibold text-cyan-600">
-    {{
-        request('date')
+    <?php echo e(request('date')
             ? \Carbon\Carbon::parse(request('date'))->format('F d, Y')
-            : now()->format('F d, Y')
-    }}
+            : now()->format('F d, Y')); ?>
+
 </span>
             </p>
         </div>
@@ -127,65 +126,71 @@
 
                 <tbody class="divide-y divide-slate-100">
 
-                    @forelse ($transactions as $transaction)
+                    <?php $__empty_1 = true; $__currentLoopData = $transactions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $transaction): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
 
                         <tr class="transition hover:bg-slate-50">
 
                             <!-- BORROWER -->
                             <td class="px-8 py-5 font-medium text-slate-900">
-                                {{ $transaction->borrower->user->name }}
+                                <?php echo e($transaction->borrower->user->name); ?>
+
                             </td>
 
                             <!-- BOOK -->
                             <td class="px-8 py-5 text-slate-600">
-                                {{ $transaction->book->title }}
+                                <?php echo e($transaction->book->title); ?>
+
                             </td>
 
                             <!-- BORROW DATE -->
                             <td class="px-8 py-5 text-slate-600">
-                                {{ \Carbon\Carbon::parse($transaction->borrow_date)->format('M d, Y') }}
+                                <?php echo e(\Carbon\Carbon::parse($transaction->borrow_date)->format('M d, Y')); ?>
+
                                 <div class="text-xs text-slate-400">
-    {{ \Carbon\Carbon::parse($transaction->borrow_time)->format('h:i A') }}
+    <?php echo e(\Carbon\Carbon::parse($transaction->borrow_time)->format('h:i A')); ?>
+
 </div>
 </td>
                             </td>
 
                             <!-- DUE DATE -->
                             <td class="px-8 py-5 text-slate-600">
-                                {{ \Carbon\Carbon::parse($transaction->due_date)->format('M d, Y') }}
+                                <?php echo e(\Carbon\Carbon::parse($transaction->due_date)->format('M d, Y')); ?>
+
                                 <div class="text-xs text-slate-400">
-    {{ \Carbon\Carbon::parse($transaction->due_date)->format('h:i A') }}
+    <?php echo e(\Carbon\Carbon::parse($transaction->due_date)->format('h:i A')); ?>
+
             </div>
                             </td>
 
                             <!-- STATUS -->
                             <td class="px-8 py-5">
 
-                                @if ($transaction->status === 'borrowed')
+                                <?php if($transaction->status === 'borrowed'): ?>
 
                                     <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
                                         Borrowed
                                     </span>
 
-                                @elseif ($transaction->status === 'returned')
+                                <?php elseif($transaction->status === 'returned'): ?>
 
                                     <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
                                         Returned
                                     </span>
 
-                                @else
+                                <?php else: ?>
 
                                     <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
                                         Overdue
                                     </span>
 
-                                @endif
+                                <?php endif; ?>
 
                             </td>
 
                         </tr>
 
-                    @empty
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
 
                         <tr>
 
@@ -195,7 +200,7 @@
 
                         </tr>
 
-                    @endforelse
+                    <?php endif; ?>
 
                 </tbody>
 
@@ -205,7 +210,8 @@
 
         <!-- PAGINATION -->
         <div class="border-t border-slate-200 px-6 py-4">
-            {{ $transactions->appends(request()->query())->links() }}
+            <?php echo e($transactions->appends(request()->query())->links()); ?>
+
         </div>
 
     </div>
@@ -217,7 +223,7 @@
 
 <script>
 
-    const chartData = @json($chartData);
+    const chartData = <?php echo json_encode($chartData, 15, 512) ?>;
 
     new Chart(document.getElementById('mostBorrowedChart'), {
 
@@ -279,4 +285,5 @@
 
 </script>
 
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\websys2\library-management-system - (maayos copy)\resources\views/admin/reports/borrowing.blade.php ENDPATH**/ ?>
